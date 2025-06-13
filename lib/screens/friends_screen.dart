@@ -13,6 +13,8 @@ class FriendsScreen extends ConsumerStatefulWidget {
 }
 
 class _FriendsScreenState extends ConsumerState<FriendsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -30,39 +32,51 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
       backgroundColor: context.scaffoldBackground,
       appBar: AppBar(
         backgroundColor: context.scaffoldBackground,
-        title: const Text('Chat App'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              // Panggil logout dari provider
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) {
-                Navigator.of(context).pushReplacementNamed('/login');
-              }
-            },
+        title: Text(
+          'Friends',
+          style: TextStyle(
+            color: context.onSurface,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
-        ],
+        ),
       ),
-      body: Center(
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Welcome to Chat App',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            if (user != null)
-              Text(
-                'Logged in as: ${user['name']}',
-                style: const TextStyle(fontSize: 16),
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search friends...',
+                hintStyle: TextStyle(color: context.onSurface),
+                prefixIcon: Icon(Icons.search, color: context.onSurface),
+                filled: true,
+                fillColor: context.onSecondary,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 10.0,
+                  horizontal: 20.0,
+                ),
               ),
+              style: TextStyle(color: context.onSurface),
+            ),
           ],
         ),
       ),
       bottomNavigationBar: AppBottombar(
         onTap: (index) => handleNavigation(context, ref, index),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: context.primary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30.0),
+        ),
+        child: Icon(Icons.person_add, color: context.scaffoldBackground),
+        onPressed: () {},
       ),
     );
   }

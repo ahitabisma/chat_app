@@ -16,9 +16,9 @@ class AppBottombar extends ConsumerWidget {
       type: BottomNavigationBarType.fixed,
       backgroundColor: context.scaffoldBackground,
       selectedItemColor: context.primary,
-      unselectedItemColor: Colors.white70,
-      selectedLabelStyle: const TextStyle(color: Colors.white70),
-      unselectedLabelStyle: const TextStyle(color: Colors.white70),
+      unselectedItemColor: context.onSurface,
+      selectedLabelStyle: TextStyle(color: context.onSurface),
+      unselectedLabelStyle: TextStyle(color: context.onSurface),
       currentIndex: currentIndex,
       onTap: (index) => onTap(index),
       items: const [

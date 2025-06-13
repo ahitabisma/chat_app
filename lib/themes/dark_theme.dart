@@ -7,7 +7,7 @@ final ThemeData darkTheme = ThemeData(
     primary: Color(0xFF42A5F5), // biru terang tapi lembut
     onPrimary: Colors.black,
     secondary: Color(0xFF29B6F6),
-    onSecondary: Colors.black,
+    onSecondary: Colors.black87,
     surface: Color(0xFF1E1E1E),
     onSurface: Colors.white,
     error: Colors.red.shade400,

@@ -1,6 +1,7 @@
 import 'package:chat_app/services/auth_service.dart';
 import 'package:chat_app/utils/storage_helper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum AuthState {
   initial,
@@ -17,38 +18,54 @@ class AuthStateNotifier extends StateNotifier<Map<String, dynamic>> {
 
   // Check if user is already logged in
   Future<void> checkAuthStatus() async {
+    // First set loading state
     state = {...state, 'status': AuthState.loading};
+    print('Checking auth status...');
 
     try {
-      final isLoggedIn = await StorageHelper.isLoggedIn();
+      // First, check if token exists
       final token = await StorageHelper.getToken();
+      print('Token from storage: ${token != null ? 'exists' : 'null'}');
 
-      if (isLoggedIn && token != null) {
-        // Get user data from storage
-        final id = await StorageHelper.getUserId();
-        final name = await StorageHelper.getUserName();
-        final email = await StorageHelper.getUserEmail();
-
-        // Jika data user berhasil diambil
-        if (id != null && name != null && email != null) {
-          // Set state ke authenticated dan masukkan data user
-          state = {
-            'status': AuthState.authenticated,
-            'user': {'id': id, 'name': name, 'email': email},
-            'error': null,
-          };
-          return;
-        }
+      if (token == null || token.isEmpty) {
+        print('No token found, setting unauthenticated');
+        state = {
+          'status': AuthState.unauthenticated,
+          'user': null,
+          'error': null,
+        };
+        return;
       }
 
-      // Jika tidak berhasil login atau data tidak lengkap
-      state = {
-        'status': AuthState.unauthenticated,
-        'user': null,
-        'error': null,
-      };
+      // If token exists, try to get user data
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getInt('user_id');
+      final userName = prefs.getString('user_name');
+      final userEmail = prefs.getString('user_email');
+
+      print(
+        'User data from storage - ID: $userId, Name: $userName, Email: $userEmail',
+      );
+
+      // Only consider authenticated if we have all user data
+      if (userId != null && userName != null && userEmail != null) {
+        print('All user data found, setting authenticated');
+        state = {
+          'status': AuthState.authenticated,
+          'user': {'id': userId, 'name': userName, 'email': userEmail},
+          'error': null,
+        };
+        return;
+      } else {
+        print('Missing user data, setting unauthenticated');
+        state = {
+          'status': AuthState.unauthenticated,
+          'user': null,
+          'error': null,
+        };
+      }
     } catch (e) {
-      // Jika error, set state ke unauthenticated
+      print('Error checking auth status: ${e}');
       state = {
         'status': AuthState.unauthenticated,
         'user': null,
@@ -57,7 +74,7 @@ class AuthStateNotifier extends StateNotifier<Map<String, dynamic>> {
     }
   }
 
-  // Login
+    // Login
   Future<void> login(String email, String password) async {
     try {
       state = {...state, 'status': AuthState.loading, 'error': null};
@@ -65,17 +82,38 @@ class AuthStateNotifier extends StateNotifier<Map<String, dynamic>> {
       final response = await AuthService.login(email, password);
 
       final data = response['data'];
+      print('Login response: $data');
 
-      // Save user data to local storage
-      if (data['token'] != null) {
-        await StorageHelper.saveToken(data['token']);
+      if (data == null) {
+        throw Exception('Invalid response from server');
       }
 
-      await StorageHelper.saveUserData(
-        data['user']['id'],
-        data['user']['name'],
-        data['user']['email'],
-      );
+      // Save token first
+      if (data['token'] != null) {
+        await StorageHelper.saveToken(data['token']);
+        print('Token saved: ${data['token']}');
+      } else {
+        throw Exception('No token received from server');
+      }
+
+      // Save user data
+      if (data['user'] != null) {
+        final user = data['user'];
+        // Convert ID to string to be consistent
+        final userId = user['id'].toString(); 
+        final userName = user['name'].toString();
+        final userEmail = user['email'].toString();
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_id', userId);
+        await prefs.setString('user_name', userName);
+        await prefs.setString('user_email', userEmail);
+        
+        print('User data saved - ID: $userId, Name: $userName, Email: $userEmail');
+        
+        // Also save "is_logged_in" flag
+        await prefs.setBool('is_logged_in', true);
+      }
 
       // Update state to authenticated
       state = {
@@ -83,7 +121,9 @@ class AuthStateNotifier extends StateNotifier<Map<String, dynamic>> {
         'user': data['user'],
         'error': null,
       };
+      print('Authentication state set to authenticated');
     } catch (e) {
+      print('Login error: ${e.toString()}');
       // Extract error message from Exception
       String errorMessage;
       if (e is Exception) {

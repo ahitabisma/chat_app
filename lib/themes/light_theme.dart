@@ -7,7 +7,7 @@ final ThemeData lightTheme = ThemeData(
     primary: Color(0xFF1976D2), // biru lebih cerah
     onPrimary: Colors.white,
     secondary: Color(0xFF64B5F6), // biru muda
-    onSecondary: Colors.white,
+    onSecondary: Colors.white70,
     surface: Colors.white,
     onSurface: Colors.black,
     error: Colors.red.shade700,

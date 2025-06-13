@@ -1,7 +1,8 @@
+import 'package:chat_app/provider/theme_provider.dart';
 import 'package:chat_app/screens/auth/login_screen.dart';
 import 'package:chat_app/screens/auth/register_screen.dart';
 import 'package:chat_app/screens/friends_screen.dart';
-import 'package:chat_app/screens/home_screen.dart';
+import 'package:chat_app/screens/chat/home_screen.dart';
 import 'package:chat_app/screens/profile_screen.dart';
 import 'package:chat_app/screens/search_screen.dart';
 import 'package:chat_app/themes/dark_theme.dart';
@@ -33,24 +34,33 @@ class MyApp extends ConsumerStatefulWidget {
 class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
-    super.initState();
     // Check authentication status when app starts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(authProvider.notifier).checkAuthStatus();
     });
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     // Watch auth state to determine which screen to show
     final authState = ref.watch(authProvider);
+    final themeMode = ref.watch(themeProvider);
+
+    // Debug auth state
+    print('Current auth state: ${authState['status']}');
+    if (authState['user'] != null) {
+      print('User data: ${authState['user']}');
+    }
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: lightTheme,
       darkTheme: darkTheme,
-      themeMode: ThemeMode.system,
+      // themeMode: ThemeMode.system,
+      themeMode: themeMode,
       home: _buildHomeScreen(authState),
+      // home: HomeScreen(),
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
