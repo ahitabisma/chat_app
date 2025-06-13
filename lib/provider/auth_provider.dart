@@ -39,7 +39,7 @@ class AuthStateNotifier extends StateNotifier<Map<String, dynamic>> {
 
       // If token exists, try to get user data
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getInt('user_id');
+      final userId = prefs.getString('user_id');
       final userName = prefs.getString('user_name');
       final userEmail = prefs.getString('user_email');
 
